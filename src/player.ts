@@ -13,11 +13,13 @@ export const playChords = (chords: Chord[]) => {
     Tone.Transport.stop();
     synth.unsync();
 
+    Tone.Transport.position = `${startingMeasure}:0:0`;
+
     chords.forEach((chord, i) => {
         synth.triggerAttackRelease(chord.noteNames, '1n', `${i+startingMeasure}:0:0`);
     });
     
-    Tone.Transport.start(0, `${startingMeasure}:0:0`);
+    // Tone.Transport.start(0, `${startingMeasure}:0:0`);
     
-    startingMeasure += chords.length;
+    startingMeasure += chords.length+1;
 };
