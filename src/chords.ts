@@ -52,13 +52,27 @@ const CHORD_DEFINITIONS: ChordDefinition[] = [
     },
 ];
 
+const generateRandomInversion = (rootOffsets: number[]): number[] => {
+    const length = rootOffsets.length;
+    const startIndex = Math.floor(Math.random() * length);
+    const ret: number[] = [];
+
+    for(let i=startIndex;i<startIndex+length;i++){
+        let offset = rootOffsets[i % length];
+        offset = i >= length ? offset + 12 : offset;
+        ret.push(offset);
+    }
+
+    return ret;
+};
+
 const generateRandomChord = (): Chord => {
     const root = getRandomNote();
     const chordDefinition = CHORD_DEFINITIONS[Math.floor(Math.random() * CHORD_DEFINITIONS.length)];
     const name = `${toNoteName(root)}${chordDefinition.suffix}`;
     const notes = [getBassNote(root)];
 
-    chordDefinition.rootOffsets.forEach((offset) => {
+    generateRandomInversion(chordDefinition.rootOffsets).forEach((offset) => {
         notes.push(root + offset + 36);
     });
 
