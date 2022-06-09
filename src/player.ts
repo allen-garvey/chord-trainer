@@ -25,9 +25,19 @@ const setupAudioContext = () => {
         const volume = audioContext.createGain();
         volume.connect(masterVolume);
 
+        const lowPassFilter = audioContext.createBiquadFilter();
+        lowPassFilter.type = 'lowpass';
+        lowPassFilter.frequency.value = 500;
+        lowPassFilter.connect(volume);
+
+        const highPassFilter = audioContext.createBiquadFilter();
+        highPassFilter.type = 'highpass';
+        highPassFilter.frequency.value = 30;
+        highPassFilter.connect(lowPassFilter);
+
         const oscillator = audioContext.createOscillator();
         oscillator.type = 'triangle';
-        oscillator.connect(volume);
+        oscillator.connect(highPassFilter);
         oscillator.start();
         
         synthVoices.push({
@@ -45,7 +55,7 @@ export const playChords = (chords: Chord[]) => {
 
     const bpm = 120;
     const wholeNoteInSeconds = 60 / bpm * 4;
-    const gainLevel = 0.7;
+    const gainLevel = 0.12;
 
     chords.forEach((chord, i) => {
         const timeOffset = i * wholeNoteInSeconds + audioContext.currentTime;
