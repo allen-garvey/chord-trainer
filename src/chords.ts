@@ -52,6 +52,29 @@ const CHORD_DEFINITIONS: ChordDefinition[] = [
     },
 ];
 
+const findClosestChordNoteFromPreviousNote = (previousNote: number, chordTones: number[]): number => {
+    const previousNoteNormalized = toRootNote(previousNote);
+
+    const closestNote = chordTones.map((chordTone) => {
+        const min = Math.min(previousNoteNormalized, chordTone);
+        const max = Math.max(previousNoteNormalized, chordTone);
+        return Math.min(max - min, min + 12 - max);
+    }).reduce(([shortestDistance, shortestChordTone], currentDistance, index) => {
+        if(currentDistance < shortestDistance){
+            return [currentDistance, chordTones[index]];
+        }
+        
+        return [shortestDistance, shortestChordTone];
+    }, [Infinity, chordTones[0]])[1];
+
+    const closestNoteToOctaveLow = Math.floor(previousNote / 12) * 12 + closestNote;
+    const closestNoteToOctaveHigh = Math.ceil(previousNote / 12) * 12 + closestNote;
+    const lowDiff = Math.abs(previousNote - closestNoteToOctaveLow);
+    const highDiff = Math.abs(closestNoteToOctaveHigh - previousNote);
+
+    return highDiff > lowDiff ? closestNoteToOctaveLow : closestNoteToOctaveHigh;
+};
+
 const generateRandomInversion = (rootOffsets: number[]): number[] => {
     const length = rootOffsets.length;
     const startIndex = Math.floor(Math.random() * length);
@@ -85,11 +108,32 @@ const generateRandomChord = (): Chord => {
     };
 };
 
-export const getRandomChords = (length: number): Chord[] => {
-    const ret = [] as Chord[];
+const generateRandomChordFromPreviousChord = (previousChord: Chord): Chord => {
+    const root = getRandomNote();
+    const chordDefinition = CHORD_DEFINITIONS[Math.floor(Math.random() * CHORD_DEFINITIONS.length)];
+    const name = `${toNoteName(root)}${chordDefinition.suffix}`;
+    const notes = [getBassNote(root)];
 
-    for(let i=0;i<length;i++){
-        ret.push(generateRandomChord());
+    const currentChordTones = chordDefinition.rootOffsets.map((offset) => root + offset);
+
+    previousChord.notes.slice(1).forEach((previousChordNote) => {
+        notes.push(findClosestChordNoteFromPreviousNote(previousChordNote, currentChordTones));
+    });
+
+    const noteNames = notes.map((n) => toNamedNote(n));
+
+    return {
+        name,
+        notes,
+        noteNames,
+    };
+};
+
+export const getRandomChords = (length: number): Chord[] => {
+    const ret: Chord[] = [generateRandomChord()];
+
+    for(let i=1;i<length;i++){
+        ret.push(generateRandomChordFromPreviousChord(ret[i-1]));
     }
 
     return ret;
