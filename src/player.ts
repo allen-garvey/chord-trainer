@@ -63,6 +63,7 @@ export const playChords = (chords: Chord[]) => {
             const synthVoice = synthVoices[j];
             const frequency = NOTE_FREQUENCIES[note+12];
             synthVoice.oscillator.frequency.setValueAtTime(frequency, timeOffset);
+            synthVoice.volume.gain.setValueAtTime(0.001, 0);
             synthVoice.volume.gain.exponentialRampToValueAtTime(gainLevel, 0);
         });
     });
